@@ -3,6 +3,7 @@ module com.nftstudio.nftstudio {
     requires javafx.fxml;
 
     requires javafx.swing;
+    requires java.sql;
 
 
     opens com.nftstudio.nftstudio to javafx.fxml;

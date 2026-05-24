@@ -7,6 +7,8 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.TextField?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.nftstudio.nftstudio.ui.HelloController">
 
@@ -19,6 +21,10 @@
             <ColorPicker fx:id="colorPicker" />
             <Slider fx:id="brushSize" min="1" max="50" value="5" showTickLabels="true" showTickMarks="true"/>
             <Button text="Clear Canvas" onAction="#clearCanvas" />
+
+            <TextField fx:id="layerNameInput" promptText="Layer Name (e.g., Red Hat)" prefWidth="150"/>
+            <ComboBox fx:id="categoryDropdown" promptText="Category" prefWidth="120"/>
+
             <Button text="Save Layer" onAction="#saveLayer" style="-fx-font-weight: bold; -fx-text-fill: #2b78e4;" />
         </HBox>
     </top>

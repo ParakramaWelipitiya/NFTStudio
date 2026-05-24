@@ -4,7 +4,9 @@ import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Slider;
+import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.WritableImage;
@@ -12,12 +14,15 @@ import javafx.stage.FileChooser;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
+import com.nftstudio.nftstudio.database.DatabaseManager;
 
 public class HelloController {
 
     @FXML private Canvas drawingCanvas;
     @FXML private ColorPicker colorPicker;
     @FXML private Slider brushSize;
+    @FXML private TextField layerNameInput;
+    @FXML private ComboBox<String> categoryDropdown;
 
     private GraphicsContext gc;
 
@@ -42,6 +47,13 @@ public class HelloController {
             gc.lineTo(event.getX(), event.getY());
             gc.stroke();
         });
+        categoryDropdown.getItems().addAll(
+                "1_Background",
+                "2_Base_Body",
+                "3_Clothes",
+                "4_Headwear",
+                "5_Accessories"
+        );
     }
 
     // This method runs when the "Clear Canvas" button is clicked
@@ -53,27 +65,36 @@ public class HelloController {
 
     @FXML
     public void saveLayer() {
-        // 1. Set up the Windows Save Dialog
+        // Grab the name and category the user typed in
+        String layerName = layerNameInput.getText();
+        String layerCategory = categoryDropdown.getValue();
+
+        // Basic validation so we don't save empty data
+        if (layerName == null || layerName.trim().isEmpty() || layerCategory == null) {
+            System.out.println("Warning: Please enter a name and select a category before saving!");
+            return;
+        }
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save NFT Layer");
+        // Pre-fill the save name with what they typed
+        fileChooser.setInitialFileName(layerName.replaceAll("\\s+", "_") + ".png");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG Files", "*.png"));
 
-        // Open the dialog and wait for the user to pick a location
         File file = fileChooser.showSaveDialog(drawingCanvas.getScene().getWindow());
 
         if (file != null) {
             try {
-                // 2. Take a "snapshot" of the canvas
-                WritableImage writableImage = new WritableImage(
-                        (int) drawingCanvas.getWidth(),
-                        (int) drawingCanvas.getHeight()
-                );
+                WritableImage writableImage = new WritableImage((int) drawingCanvas.getWidth(), (int) drawingCanvas.getHeight());
                 drawingCanvas.snapshot(null, writableImage);
-
-                // 3. Convert and save it to the hard drive
                 ImageIO.write(SwingFXUtils.fromFXImage(writableImage, null), "png", file);
 
-                System.out.println("Layer saved successfully at: " + file.getAbsolutePath());
+                // NEW: Send the data to SQLite!
+                DatabaseManager.insertLayer(layerName, layerCategory, file.getAbsolutePath());
+
+                // Clear the text box after a successful save
+                layerNameInput.clear();
+
             } catch (IOException ex) {
                 System.out.println("Error saving the image: " + ex.getMessage());
             }
