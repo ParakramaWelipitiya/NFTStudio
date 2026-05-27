@@ -14,7 +14,7 @@ import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import com.nftstudio.nftstudio.database.DatabaseManager;
-
+import javafx.stage.Window;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
 
@@ -82,9 +82,15 @@ public class HelloController {
             }
         });
 
-        categoryDropdown.getItems().addAll(
-                "1_Background", "2_Base_Body", "3_Clothes", "4_Headwear", "5_Accessories"
-        );
+        // Dynamic Category Loading
+        java.util.Map<String, java.util.List<String>> existingData = DatabaseManager.getLayersByCategory();
+        if (existingData.isEmpty()) {
+            categoryDropdown.getItems().addAll("1_Background", "2_Base_Body", "3_Clothes", "4_Headwear", "5_Accessories");
+        } else {
+            for (String category : existingData.keySet()) {
+                categoryDropdown.getItems().add(category);
+            }
+        }
 
         String userHome = System.getProperty("user.home");
         outputPathInput.setText(userHome + File.separator + "Pictures" + File.separator + "NFT_Studio_Output");
@@ -168,15 +174,12 @@ public class HelloController {
             layerNameInput.clear();
             refreshLayerList();
 
-            // Lock it back up
             importOverlay.setImage(null);
             importWrapper.setMouseTransparent(true);
             importScaleSlider.setDisable(true);
             importRotateSlider.setDisable(true);
             confirmImportBtn.setDisable(true);
             cancelImportBtn.setDisable(true);
-
-            System.out.println("Successfully transformed and saved import!");
 
         } catch (IOException e) {
             System.out.println("Error saving import: " + e.getMessage());
@@ -185,17 +188,12 @@ public class HelloController {
 
     @FXML
     public void cancelImport() {
-        // Delete the image and shatter the glass shield
         importOverlay.setImage(null);
         importWrapper.setMouseTransparent(true);
-
-        // Lock the UI controls
         importScaleSlider.setDisable(true);
         importRotateSlider.setDisable(true);
         confirmImportBtn.setDisable(true);
         cancelImportBtn.setDisable(true);
-
-        System.out.println("Import cancelled. Drawing tools unlocked.");
     }
 
     @FXML
@@ -268,16 +266,36 @@ public class HelloController {
         }
     }
 
+    // --- UPDATED: GENERATOR POPUP ---
     @FXML
     public void runGenerator() {
         String outputPath = outputPathInput.getText();
         File directory = new File(outputPath);
         if (!directory.exists()) directory.mkdirs();
+
         try {
             int amount = Integer.parseInt(amountInput.getText());
             com.nftstudio.nftstudio.engine.GeneratorEngine.generateCollection(DatabaseManager.getLayersByCategory(), amount, outputPath);
-            System.out.println("SUCCESS!");
-        } catch (NumberFormatException e) {}
+
+            // Success Popup!
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Success");
+            alert.setHeaderText("Generation Complete!");
+            alert.setContentText("Successfully generated " + amount + " NFTs to your output folder.");
+
+            // Push the popup to the top of the window
+            Window window = drawingCanvas.getScene().getWindow();
+            alert.setY(window.getY() + 40);
+
+            alert.show();
+
+        } catch (NumberFormatException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Invalid Amount");
+            alert.setContentText("Please enter a valid number.");
+            alert.show();
+        }
     }
 
     public void refreshLayerList() {
@@ -288,18 +306,51 @@ public class HelloController {
         }
     }
 
+    // --- UPDATED: DELETE CONFIRMATION ---
     @FXML
     public void deleteSelectedLayer() {
         String selectedPath = layerListView.getSelectionModel().getSelectedItem();
+
         if (selectedPath != null) {
-            DatabaseManager.deleteLayer(selectedPath);
-            refreshLayerList();
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirm Deletion");
+            alert.setHeaderText("Delete this layer?");
+            alert.setContentText("This will remove the layer from your database. Are you sure?");
+
+            alert.showAndWait().ifPresent(response -> {
+                if (response == ButtonType.OK) {
+                    DatabaseManager.deleteLayer(selectedPath);
+                    refreshLayerList();
+                }
+            });
         }
     }
 
+    // --- UPDATED: RESET CONFIRMATION ---
     @FXML
     public void resetEntireDatabase() {
-        DatabaseManager.resetDatabase();
-        refreshLayerList();
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Critical Warning");
+        alert.setHeaderText("Wipe Entire Database?");
+        alert.setContentText("This will permanently clear all layers from your studio's memory. This cannot be undone. Are you absolutely sure?");
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                DatabaseManager.resetDatabase();
+                refreshLayerList();
+            }
+        });
+    }
+
+    // --- NEW: POPUP STYLER HELPER ---
+    private void applyDarkThemeToPopup(Alert alert) {
+        DialogPane dialogPane = alert.getDialogPane();
+        try {
+            // Grab the exact same CSS file we use for the main window
+            String cssPath = getClass().getResource("style.css").toExternalForm();
+            dialogPane.getStylesheets().add(cssPath);
+        } catch (Exception e) {
+            System.out.println("Warning: Could not style popup - " + e.getMessage());
+        }
     }
 }

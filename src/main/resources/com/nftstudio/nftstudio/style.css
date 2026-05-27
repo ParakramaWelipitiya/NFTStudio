@@ -1,0 +1,200 @@
+/* =======================================================
+   NFT STUDIO : SMOOTH MIDNIGHT THEME
+   (Eliminates "blocky" borders, adds roundness & soft shadows)
+   ======================================================= */
+
+/* --- GLOBAL APP BACKGROUND --- */
+.root {
+    -fx-background-color: #12121a; /* Deeper, sleeker background */
+    -fx-font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.label {
+    -fx-text-fill: #e2e8f0;
+}
+
+/* --- PANELS & BARS (Floating, borderless design) --- */
+.top-bar {
+    -fx-background-color: #1e1e2e;
+    /* Removed the hard border, added a soft shadow dropping down */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 15, 0, 0, 4);
+    -fx-padding: 12 20 12 20;
+}
+
+.sidebar {
+    -fx-background-color: #1e1e2e;
+    /* Soft shadow pushing inwards towards the canvas */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 15, 0, 0, 0);
+}
+
+.bottom-bar {
+    -fx-background-color: linear-gradient(to right, #181825, #222236);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 15, 0, 0, -4);
+}
+.bottom-bar .label {
+    -fx-text-fill: #bac2de;
+}
+
+/* --- TEXT FIELDS & DROPDOWNS (Smooth pill shapes) --- */
+.text-field, .combo-box {
+    -fx-background-color: #11111b;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #313244;
+    -fx-border-radius: 12; /* Much rounder */
+    -fx-background-radius: 12;
+    -fx-padding: 8 14 8 14;
+}
+.text-field:focused, .combo-box:focused {
+    -fx-border-color: #89b4fa;
+    -fx-background-color: #181825;
+}
+
+/* --- DEFAULT BUTTONS (Floating with soft corners) --- */
+.button, .toggle-button {
+    -fx-background-color: #313244;
+    -fx-text-fill: #e2e8f0;
+    -fx-background-radius: 12; /* Modern roundness */
+    -fx-padding: 10 16 10 16;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 5, 0, 0, 2); /* Base floating shadow */
+}
+.button:hover, .toggle-button:hover {
+    -fx-background-color: #45475a;
+    -fx-text-fill: #ffffff;
+}
+.toggle-button:selected {
+    -fx-background-color: linear-gradient(to bottom right, #89b4fa, #b4befe);
+    -fx-text-fill: #11111b;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(137,180,250,0.3), 10, 0, 0, 3);
+}
+
+/* --- THE COLOR MIXING / GRADIENT BUTTONS --- */
+
+/* 1. Primary Actions */
+.primary-button {
+    -fx-background-color: linear-gradient(to bottom right, #8E2DE2, #4A00E0);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(74,0,224,0.3), 10, 0, 0, 3);
+}
+.primary-button:hover {
+    -fx-background-color: linear-gradient(to bottom right, #9d4edd, #5e10e5);
+    -fx-effect: dropshadow(gaussian, rgba(74,0,224,0.5), 15, 0, 0, 4); /* Shadow grows on hover */
+}
+
+/* 2. Success Actions */
+.success-button {
+    -fx-background-color: linear-gradient(to bottom right, #00b09b, #96c93d);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,176,155,0.3), 10, 0, 0, 3);
+}
+.success-button:hover {
+    -fx-background-color: linear-gradient(to bottom right, #00c9b1, #a4db43);
+    -fx-effect: dropshadow(gaussian, rgba(0,176,155,0.5), 15, 0, 0, 4);
+}
+
+/* 3. Danger/Delete Actions */
+.danger-button {
+    -fx-background-color: linear-gradient(to bottom right, #ff416c, #ff4b2b);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(255,65,108,0.3), 10, 0, 0, 3);
+}
+.danger-button:hover {
+    -fx-background-color: linear-gradient(to bottom right, #ff5b80, #ff6347);
+    -fx-effect: dropshadow(gaussian, rgba(255,65,108,0.5), 15, 0, 0, 4);
+}
+
+/* --- DATABASE LIST VIEW (Seamless blending) --- */
+.list-view {
+    -fx-background-color: transparent;
+    -fx-control-inner-background: #11111b;
+    -fx-background-radius: 12;
+    /* Removed the border entirely for a cleaner inset look */
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+}
+.list-cell {
+    -fx-text-fill: #bac2de;
+    -fx-padding: 12;
+    -fx-font-size: 13px;
+    -fx-background-radius: 8;
+}
+.list-cell:empty {
+    -fx-background-color: transparent;
+}
+.list-cell:hover {
+    -fx-background-color: #181825;
+}
+.list-cell:selected {
+    -fx-background-color: linear-gradient(to right, #89b4fa, #b4befe);
+    -fx-text-fill: #11111b;
+    -fx-font-weight: bold;
+}
+
+/* --- SLIDERS (Smooth and modern) --- */
+.slider .track {
+    -fx-background-color: #313244;
+    -fx-pref-height: 8;
+    -fx-background-radius: 4;
+}
+.slider .thumb {
+    -fx-background-color: #89b4fa;
+    -fx-pref-width: 16;
+    -fx-pref-height: 16;
+    -fx-background-radius: 8;
+}
+.slider .thumb:hover {
+    -fx-background-color: #b4befe;
+    -fx-effect: dropshadow(gaussian, rgba(180,190,254,0.6), 10, 0, 0, 0);
+}
+
+/* --- SCROLL PANES (Fully hidden structural lines) --- */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-control-inner-background: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+.scroll-bar:vertical, .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+.scroll-bar:vertical .thumb, .scroll-bar:horizontal .thumb {
+    -fx-background-color: #45475a;
+    -fx-background-radius: 10;
+}
+
+/* --- MODERN COLOR PICKER OVERRIDE (Fixed) --- */
+.color-picker {
+    -fx-background-color: #11111b;
+    -fx-border-color: #313244;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 4;
+}
+
+.color-picker:hover {
+    -fx-background-color: #181825;
+    -fx-border-color: #89b4fa;
+}
+
+/* FIX: Hide ONLY the text string, leaving the color square visible! */
+.color-picker .text {
+    -fx-fill: transparent;
+}
+
+/* Make the color square itself look smooth */
+.color-picker .picker-color {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #313244;
+}

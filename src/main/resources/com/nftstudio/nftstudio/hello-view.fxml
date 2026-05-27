@@ -20,32 +20,33 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.control.ScrollPane?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.nftstudio.nftstudio.ui.HelloController">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.nftstudio.nftstudio.ui.HelloController" stylesheets="@style.css">
 
     <top>
-        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: #f0f0f0; -fx-border-color: #bcccdc; -fx-border-width: 0 0 1 0;">
+        <HBox spacing="15" alignment="CENTER_LEFT" styleClass="top-bar">
             <padding>
                 <Insets top="10" right="15" bottom="10" left="15"/>
             </padding>
             <TextField fx:id="layerNameInput" promptText="Layer Name (e.g., Red Hat)" prefWidth="200"/>
-            <ComboBox fx:id="categoryDropdown" promptText="Category" prefWidth="150"/>
 
-            <Button text="Save Hand-Drawn Layer" onAction="#saveLayer" style="-fx-background-color: #2b78e4; -fx-text-fill: white; -fx-font-weight: bold;" />
+            <ComboBox fx:id="categoryDropdown" promptText="Select or Type Category..." editable="true" prefWidth="200"/>
+
+            <Button text="Save Hand-Drawn Layer" onAction="#saveLayer" styleClass="primary-button" />
 
             <Region HBox.hgrow="ALWAYS" />
-            <ToggleButton fx:id="dbToggle" text="Toggle Database List" onAction="#toggleDatabasePanel" selected="true" style="-fx-font-weight: bold;" />
+            <ToggleButton fx:id="dbToggle" text="Toggle Database List" onAction="#toggleDatabasePanel" selected="true" />
         </HBox>
     </top>
 
     <left>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" style="-fx-border-color: #bcccdc; -fx-border-width: 0 1 0 0; -fx-background-color: transparent;">
-            <VBox spacing="20" alignment="TOP_CENTER" style="-fx-background-color: #f0f0f0;" prefWidth="240">
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" style="-fx-border-width: 0 1 0 0; -fx-border-color: #333;">
+            <VBox spacing="20" alignment="TOP_CENTER" styleClass="sidebar" prefWidth="240">
                 <padding>
                     <Insets top="20" right="15" bottom="20" left="15"/>
                 </padding>
 
                 <VBox spacing="10" alignment="CENTER">
-                    <Label text="Drawing Tools" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #333333;"/>
+                    <Label text="Drawing Tools" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
                     <HBox spacing="10" alignment="CENTER">
                         <ToggleButton fx:id="brushToggle" text="Brush" prefWidth="85"/>
                         <ToggleButton fx:id="eraserToggle" text="Eraser" prefWidth="85"/>
@@ -60,26 +61,26 @@
                     </VBox>
                 </VBox>
 
-                <Separator />
+                <Separator style="-fx-background-color: #444;" />
 
                 <VBox spacing="10" alignment="CENTER">
-                    <Label text="Canvas View" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #333333;"/>
+                    <Label text="Canvas View" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
                     <ToggleButton fx:id="gridToggle" text="Show Grid" onAction="#toggleGrid" prefWidth="180"/>
-                    <Button text="Clear Canvas" onAction="#clearCanvas" prefWidth="180" style="-fx-background-color: #ffcc00; -fx-font-weight: bold;" />
+                    <Button text="Clear Canvas" onAction="#clearCanvas" prefWidth="180" style="-fx-background-color: #d29922; -fx-text-fill: white;" />
                 </VBox>
 
-                <Separator />
+                <Separator style="-fx-background-color: #444;" />
 
                 <VBox spacing="10" alignment="CENTER">
-                    <Label text="Tracing Overlay" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #333333;"/>
+                    <Label text="Tracing Overlay" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
                     <Button text="Load Tracing" onAction="#loadTracingImage" prefWidth="180"/>
                     <Button text="Remove Tracing" onAction="#removeTracingImage" prefWidth="180"/>
                 </VBox>
 
-                <Separator />
+                <Separator style="-fx-background-color: #444;" />
 
                 <VBox spacing="10" alignment="CENTER">
-                    <Label text="Import &amp; Transform" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #333333;"/>
+                    <Label text="Import &amp; Transform" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
                     <Button text="1. Load Image" onAction="#startImportMode" prefWidth="180"/>
 
                     <VBox spacing="5">
@@ -92,8 +93,8 @@
                         <Slider fx:id="importRotateSlider" min="-180" max="180" value="0" disable="true" prefWidth="180"/>
                     </VBox>
 
-                    <Button fx:id="confirmImportBtn" text="2. Save Import" onAction="#confirmImport" prefWidth="180" style="-fx-background-color: #2ea043; -fx-text-fill: white; -fx-font-weight: bold;" disable="true"/>
-                    <Button fx:id="cancelImportBtn" text="Cancel Import" onAction="#cancelImport" prefWidth="180" style="-fx-background-color: #d93025; -fx-text-fill: white; -fx-font-weight: bold;" disable="true"/>
+                    <Button fx:id="confirmImportBtn" text="2. Save Import" onAction="#confirmImport" prefWidth="180" styleClass="success-button" disable="true"/>
+                    <Button fx:id="cancelImportBtn" text="Cancel Import" onAction="#cancelImport" prefWidth="180" styleClass="danger-button" disable="true"/>
                 </VBox>
 
             </VBox>
@@ -101,11 +102,11 @@
     </left>
 
     <center>
-        <StackPane style="-fx-background-color: #e5e5e5;">
+        <StackPane style="-fx-background-color: #2d2d2d;">
+            <Pane maxWidth="800" maxHeight="600" style="-fx-background-color: white; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 0);" />
             <ImageView fx:id="tracingImageView" fitWidth="800" fitHeight="600" preserveRatio="true" />
             <Canvas fx:id="gridCanvas" width="800" height="600" mouseTransparent="true" />
             <Canvas fx:id="drawingCanvas" width="800" height="600" />
-
             <Pane fx:id="importWrapper" maxWidth="800" maxHeight="600" mouseTransparent="true">
                 <ImageView fx:id="importOverlay" preserveRatio="true" />
             </Pane>
@@ -113,27 +114,27 @@
     </center>
 
     <right>
-        <VBox fx:id="databasePanel" spacing="10" style="-fx-background-color: #f8f9fa; -fx-border-color: #bcccdc; -fx-border-width: 0 0 0 1;" prefWidth="250">
+        <VBox fx:id="databasePanel" spacing="10" styleClass="sidebar" style="-fx-border-width: 0 0 0 1;" prefWidth="250">
             <padding>
                 <Insets top="15" right="15" bottom="15" left="15"/>
             </padding>
             <Label text="Database List" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
             <ListView fx:id="layerListView" prefWidth="220" prefHeight="450" VBox.vgrow="ALWAYS" />
-            <Button text="Delete Selected" onAction="#deleteSelectedLayer" prefWidth="220" style="-fx-background-color: #ff4d4f; -fx-text-fill: white; -fx-font-weight: bold;" />
-            <Button text="RESET DATABASE" onAction="#resetEntireDatabase" prefWidth="220" style="-fx-background-color: #820014; -fx-text-fill: white; -fx-font-weight: bold;" />
+            <Button text="Delete Selected" onAction="#deleteSelectedLayer" prefWidth="220" styleClass="danger-button" />
+            <Button text="RESET DATABASE" onAction="#resetEntireDatabase" prefWidth="220" styleClass="danger-button" />
         </VBox>
     </right>
 
     <bottom>
-        <HBox spacing="15" alignment="CENTER" style="-fx-background-color: #d9e2ec; -fx-border-color: #bcccdc; -fx-border-width: 1 0 0 0;">
+        <HBox spacing="15" alignment="CENTER" styleClass="bottom-bar">
             <padding>
                 <Insets top="15" right="15" bottom="15" left="15"/>
             </padding>
             <Label text="Output Folder:" style="-fx-font-weight: bold;"/>
-            <TextField fx:id="outputPathInput" prefWidth="300" />
+            <TextField fx:id="outputPathInput" prefWidth="300" style="-fx-background-color: #1e1e1e;" />
             <Label text="Amount:" style="-fx-font-weight: bold;"/>
-            <TextField fx:id="amountInput" text="10" prefWidth="60" />
-            <Button text="Generate Collection" onAction="#runGenerator" style="-fx-background-color: #2b78e4; -fx-text-fill: white; -fx-font-weight: bold;" />
+            <TextField fx:id="amountInput" text="10" prefWidth="60" style="-fx-background-color: #1e1e1e;" />
+            <Button text="Generate Collection" onAction="#runGenerator" style="-fx-background-color: white; -fx-text-fill: #007acc; -fx-font-weight: bold;" />
         </HBox>
     </bottom>
 
