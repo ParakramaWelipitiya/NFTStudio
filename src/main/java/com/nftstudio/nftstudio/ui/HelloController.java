@@ -24,14 +24,14 @@ public class HelloController {
     @FXML private Canvas gridCanvas;
     @FXML private ImageView tracingImageView;
 
-    // NEW: Transform Overlay Variables
+    // Transform Overlay Variables
     @FXML private Pane importWrapper;
     @FXML private ImageView importOverlay;
     @FXML private Slider importScaleSlider;
     @FXML private Slider importRotateSlider;
     @FXML private Button confirmImportBtn;
+    @FXML private Button cancelImportBtn;
 
-    // Mouse drag tracking variables
     private double dragStartX = 0;
     private double dragStartY = 0;
 
@@ -90,14 +90,10 @@ public class HelloController {
         outputPathInput.setText(userHome + File.separator + "Pictures" + File.separator + "NFT_Studio_Output");
         refreshLayerList();
 
-        // --- NEW: TRANSFORM MECHANICS ---
-
-        // 1. Tie the sliders directly to the image's scale and rotation!
         importOverlay.scaleXProperty().bind(importScaleSlider.valueProperty());
         importOverlay.scaleYProperty().bind(importScaleSlider.valueProperty());
         importOverlay.rotateProperty().bind(importRotateSlider.valueProperty());
 
-        // 2. Allow the user to drag the image around with their mouse
         importOverlay.setOnMousePressed(e -> {
             dragStartX = e.getSceneX() - importOverlay.getTranslateX();
             dragStartY = e.getSceneY() - importOverlay.getTranslateY();
@@ -108,8 +104,6 @@ public class HelloController {
             importOverlay.setTranslateY(e.getSceneY() - dragStartY);
         });
     }
-
-    // --- NEW: IMPORTING FLUX ---
 
     @FXML
     public void startImportMode() {
@@ -123,31 +117,25 @@ public class HelloController {
             Image image = new Image(sourceFile.toURI().toString());
             importOverlay.setImage(image);
 
-            // --- THE FIX: PREVENT GIANT IMAGES FROM BREAKING THE UI ---
-            // 1. Calculate how much to shrink the image so it safely fits inside 800x600
             double safeScale = 1.0;
             if (image.getWidth() > 800 || image.getHeight() > 600) {
                 safeScale = Math.min(800.0 / image.getWidth(), 600.0 / image.getHeight());
             }
 
-            // 2. Apply those safe boundaries directly to the image viewer
             importOverlay.setFitWidth(image.getWidth() * safeScale);
             importOverlay.setFitHeight(image.getHeight() * safeScale);
 
-            // 3. Center the safely-sized image in the middle of the canvas
             importOverlay.setTranslateX((800 - importOverlay.getFitWidth()) / 2);
             importOverlay.setTranslateY((600 - importOverlay.getFitHeight()) / 2);
-            // ----------------------------------------------------------
 
-            // Reset the sliders
             importScaleSlider.setValue(1.0);
             importRotateSlider.setValue(0);
 
-            // "Unlock" the overlay so the mouse can grab it
             importWrapper.setMouseTransparent(false);
             importScaleSlider.setDisable(false);
             importRotateSlider.setDisable(false);
             confirmImportBtn.setDisable(false);
+            cancelImportBtn.setDisable(false);
         }
     }
 
@@ -169,7 +157,6 @@ public class HelloController {
         File destFile = new File(destDir, safeFileName);
 
         try {
-            // Take a snapshot of the WRAPPER (which perfectly captures the moved/scaled image on an 800x600 transparent background)
             WritableImage writableImage = new WritableImage(800, 600);
             javafx.scene.SnapshotParameters params = new javafx.scene.SnapshotParameters();
             params.setFill(Color.TRANSPARENT);
@@ -181,12 +168,13 @@ public class HelloController {
             layerNameInput.clear();
             refreshLayerList();
 
-            // EXIT IMPORT MODE (Lock everything back up)
+            // Lock it back up
             importOverlay.setImage(null);
             importWrapper.setMouseTransparent(true);
             importScaleSlider.setDisable(true);
             importRotateSlider.setDisable(true);
             confirmImportBtn.setDisable(true);
+            cancelImportBtn.setDisable(true);
 
             System.out.println("Successfully transformed and saved import!");
 
@@ -195,7 +183,20 @@ public class HelloController {
         }
     }
 
-    // --- EXISTING METHODS BELOW ---
+    @FXML
+    public void cancelImport() {
+        // Delete the image and shatter the glass shield
+        importOverlay.setImage(null);
+        importWrapper.setMouseTransparent(true);
+
+        // Lock the UI controls
+        importScaleSlider.setDisable(true);
+        importRotateSlider.setDisable(true);
+        confirmImportBtn.setDisable(true);
+        cancelImportBtn.setDisable(true);
+
+        System.out.println("Import cancelled. Drawing tools unlocked.");
+    }
 
     @FXML
     public void toggleDatabasePanel() {
