@@ -9,6 +9,11 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.image.ImageView?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.nftstudio.nftstudio.ui.HelloController">
 
@@ -22,15 +27,56 @@
             <Slider fx:id="brushSize" min="1" max="50" value="5" showTickLabels="true" showTickMarks="true"/>
             <Button text="Clear Canvas" onAction="#clearCanvas" />
 
+            <Button text="Load Tracing Image" onAction="#loadTracingImage" />
+
+            <Label text="  |  " style="-fx-text-fill: #999999;" />
+
             <TextField fx:id="layerNameInput" promptText="Layer Name (e.g., Red Hat)" prefWidth="150"/>
             <ComboBox fx:id="categoryDropdown" promptText="Category" prefWidth="120"/>
+
+            <Button text="Import PNG" onAction="#importExternalLayer" style="-fx-text-fill: #2ea043;"/>
 
             <Button text="Save Layer" onAction="#saveLayer" style="-fx-font-weight: bold; -fx-text-fill: #2b78e4;" />
         </HBox>
     </top>
 
     <center>
-        <Canvas fx:id="drawingCanvas" width="800" height="600" />
+        <StackPane style="-fx-background-color: white;">
+            <ImageView fx:id="tracingImageView" fitWidth="800" fitHeight="600" preserveRatio="true" />
+
+            <Canvas fx:id="drawingCanvas" width="800" height="600" />
+        </StackPane>
     </center>
+
+    <right>
+        <VBox spacing="10" style="-fx-background-color: #f8f9fa; -fx-border-color: #bcccdc; -fx-border-width: 0 0 0 1;">
+            <padding>
+                <Insets top="15" right="15" bottom="15" left="15"/>
+            </padding>
+
+            <Label text="Database Management" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+
+            <ListView fx:id="layerListView" prefWidth="250" prefHeight="400" />
+
+            <Button text="Delete Selected Layer" onAction="#deleteSelectedLayer" prefWidth="250" style="-fx-background-color: #ff4d4f; -fx-text-fill: white; -fx-font-weight: bold;" />
+            <Button text="RESET DATABASE" onAction="#resetEntireDatabase" prefWidth="250" style="-fx-background-color: #820014; -fx-text-fill: white; -fx-font-weight: bold;" />
+        </VBox>
+    </right>
+
+    <bottom>
+        <HBox spacing="15" alignment="CENTER" style="-fx-background-color: #d9e2ec; -fx-border-color: #bcccdc; -fx-border-width: 1 0 0 0;">
+            <padding>
+                <Insets top="15" right="15" bottom="15" left="15"/>
+            </padding>
+
+            <Label text="Output Folder:" style="-fx-font-weight: bold;"/>
+            <TextField fx:id="outputPathInput" text="C:\Users\acer\Pictures\NFT_Output" prefWidth="300" />
+
+            <Label text="Amount to Generate:" style="-fx-font-weight: bold;"/>
+            <TextField fx:id="amountInput" text="10" prefWidth="60" />
+
+            <Button text="Generate Collection" onAction="#runGenerator" style="-fx-background-color: #2b78e4; -fx-text-fill: white; -fx-font-weight: bold;" />
+        </HBox>
+    </bottom>
 
 </BorderPane>
