@@ -3,10 +3,9 @@ package com.nftstudio.nftstudio.ui;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.ColorPicker;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Slider;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.WritableImage;
@@ -15,145 +14,256 @@ import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import com.nftstudio.nftstudio.database.DatabaseManager;
-import javafx.scene.control.ListView;
+
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
 
 public class HelloController {
 
     @FXML private Canvas drawingCanvas;
-    @FXML private ColorPicker colorPicker;
-    @FXML private Slider brushSize;
-    @FXML private TextField layerNameInput;
-    @FXML private ComboBox<String> categoryDropdown;
-    @FXML private TextField outputPathInput;
-    @FXML private TextField amountInput;
-    @FXML private ListView<String> layerListView;
-
-    // NEW VARIABLE FOR TRACING
+    @FXML private Canvas gridCanvas;
     @FXML private ImageView tracingImageView;
 
+    // NEW: Transform Overlay Variables
+    @FXML private Pane importWrapper;
+    @FXML private ImageView importOverlay;
+    @FXML private Slider importScaleSlider;
+    @FXML private Slider importRotateSlider;
+    @FXML private Button confirmImportBtn;
+
+    // Mouse drag tracking variables
+    private double dragStartX = 0;
+    private double dragStartY = 0;
+
+    @FXML private ColorPicker colorPicker;
+    @FXML private Slider brushSize;
+    @FXML private ToggleButton brushToggle;
+    @FXML private ToggleButton eraserToggle;
+    @FXML private ToggleButton gridToggle;
+    @FXML private TextField layerNameInput;
+    @FXML private ComboBox<String> categoryDropdown;
+    @FXML private ToggleButton dbToggle;
+    @FXML private VBox databasePanel;
+    @FXML private ListView<String> layerListView;
+    @FXML private TextField outputPathInput;
+    @FXML private TextField amountInput;
+
     private GraphicsContext gc;
+    private ToggleGroup toolGroup;
 
     @FXML
     public void initialize() {
         gc = drawingCanvas.getGraphicsContext2D();
         colorPicker.setValue(Color.BLACK);
 
+        toolGroup = new ToggleGroup();
+        brushToggle.setToggleGroup(toolGroup);
+        eraserToggle.setToggleGroup(toolGroup);
+        brushToggle.setSelected(true);
+
         drawingCanvas.setOnMousePressed(event -> {
-            gc.setStroke(colorPicker.getValue());
-            gc.setLineWidth(brushSize.getValue());
-            gc.beginPath();
-            gc.moveTo(event.getX(), event.getY());
-            gc.stroke();
+            double size = brushSize.getValue();
+            if (eraserToggle.isSelected()) gc.clearRect(event.getX() - (size / 2), event.getY() - (size / 2), size, size);
+            else {
+                gc.setStroke(colorPicker.getValue());
+                gc.setLineWidth(size);
+                gc.beginPath();
+                gc.moveTo(event.getX(), event.getY());
+                gc.stroke();
+            }
         });
 
         drawingCanvas.setOnMouseDragged(event -> {
-            gc.lineTo(event.getX(), event.getY());
-            gc.stroke();
+            double size = brushSize.getValue();
+            if (eraserToggle.isSelected()) gc.clearRect(event.getX() - (size / 2), event.getY() - (size / 2), size, size);
+            else {
+                gc.lineTo(event.getX(), event.getY());
+                gc.stroke();
+            }
         });
 
         categoryDropdown.getItems().addAll(
-                "1_Background",
-                "2_Base_Body",
-                "3_Clothes",
-                "4_Headwear",
-                "5_Accessories"
+                "1_Background", "2_Base_Body", "3_Clothes", "4_Headwear", "5_Accessories"
         );
 
-        // --- NEW: DYNAMIC FOLDER AUTOMATION ---
-        // 1. Get the current computer user's home directory (e.g., C:\Users\Sarah)
         String userHome = System.getProperty("user.home");
-
-        // 2. Build a path to their Pictures folder using File.separator (so it works on Mac too)
-        String defaultOutputPath = userHome + File.separator + "Pictures" + File.separator + "NFT_Studio_Output";
-
-        // 3. Inject it into the UI Text Box automatically!
-        outputPathInput.setText(defaultOutputPath);
-        // --------------------------------------
-
+        outputPathInput.setText(userHome + File.separator + "Pictures" + File.separator + "NFT_Studio_Output");
         refreshLayerList();
+
+        // --- NEW: TRANSFORM MECHANICS ---
+
+        // 1. Tie the sliders directly to the image's scale and rotation!
+        importOverlay.scaleXProperty().bind(importScaleSlider.valueProperty());
+        importOverlay.scaleYProperty().bind(importScaleSlider.valueProperty());
+        importOverlay.rotateProperty().bind(importRotateSlider.valueProperty());
+
+        // 2. Allow the user to drag the image around with their mouse
+        importOverlay.setOnMousePressed(e -> {
+            dragStartX = e.getSceneX() - importOverlay.getTranslateX();
+            dragStartY = e.getSceneY() - importOverlay.getTranslateY();
+        });
+
+        importOverlay.setOnMouseDragged(e -> {
+            importOverlay.setTranslateX(e.getSceneX() - dragStartX);
+            importOverlay.setTranslateY(e.getSceneY() - dragStartY);
+        });
     }
 
-    // NEW METHOD: Load the background tracing image
+    // --- NEW: IMPORTING FLUX ---
+
     @FXML
-    public void loadTracingImage() {
+    public void startImportMode() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select a Base Image to Trace");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG Files", "*.png"));
+        fileChooser.setTitle("Select Image to Transform");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg"));
 
-        File file = fileChooser.showOpenDialog(drawingCanvas.getScene().getWindow());
+        File sourceFile = fileChooser.showOpenDialog(drawingCanvas.getScene().getWindow());
 
-        if (file != null) {
-            Image tracingImage = new Image(file.toURI().toString());
-            tracingImageView.setImage(tracingImage);
-            System.out.println("Loaded tracing image: " + file.getName());
+        if (sourceFile != null) {
+            Image image = new Image(sourceFile.toURI().toString());
+            importOverlay.setImage(image);
+
+            // --- THE FIX: PREVENT GIANT IMAGES FROM BREAKING THE UI ---
+            // 1. Calculate how much to shrink the image so it safely fits inside 800x600
+            double safeScale = 1.0;
+            if (image.getWidth() > 800 || image.getHeight() > 600) {
+                safeScale = Math.min(800.0 / image.getWidth(), 600.0 / image.getHeight());
+            }
+
+            // 2. Apply those safe boundaries directly to the image viewer
+            importOverlay.setFitWidth(image.getWidth() * safeScale);
+            importOverlay.setFitHeight(image.getHeight() * safeScale);
+
+            // 3. Center the safely-sized image in the middle of the canvas
+            importOverlay.setTranslateX((800 - importOverlay.getFitWidth()) / 2);
+            importOverlay.setTranslateY((600 - importOverlay.getFitHeight()) / 2);
+            // ----------------------------------------------------------
+
+            // Reset the sliders
+            importScaleSlider.setValue(1.0);
+            importRotateSlider.setValue(0);
+
+            // "Unlock" the overlay so the mouse can grab it
+            importWrapper.setMouseTransparent(false);
+            importScaleSlider.setDisable(false);
+            importRotateSlider.setDisable(false);
+            confirmImportBtn.setDisable(false);
+        }
+    }
+
+    @FXML
+    public void confirmImport() {
+        String layerName = layerNameInput.getText();
+        String layerCategory = categoryDropdown.getValue();
+
+        if (layerName == null || layerName.trim().isEmpty() || layerCategory == null) {
+            System.out.println("Warning: Type a Name and pick a Category at the top before saving!");
+            return;
+        }
+
+        String userHome = System.getProperty("user.home");
+        File destDir = new File(userHome + File.separator + "Pictures" + File.separator + "NFT_Studio_Layers");
+        if (!destDir.exists()) destDir.mkdirs();
+
+        String safeFileName = layerName.replaceAll("\\s+", "_") + ".png";
+        File destFile = new File(destDir, safeFileName);
+
+        try {
+            // Take a snapshot of the WRAPPER (which perfectly captures the moved/scaled image on an 800x600 transparent background)
+            WritableImage writableImage = new WritableImage(800, 600);
+            javafx.scene.SnapshotParameters params = new javafx.scene.SnapshotParameters();
+            params.setFill(Color.TRANSPARENT);
+
+            importWrapper.snapshot(params, writableImage);
+            ImageIO.write(SwingFXUtils.fromFXImage(writableImage, null), "png", destFile);
+
+            DatabaseManager.insertLayer(layerName, layerCategory, destFile.getAbsolutePath());
+            layerNameInput.clear();
+            refreshLayerList();
+
+            // EXIT IMPORT MODE (Lock everything back up)
+            importOverlay.setImage(null);
+            importWrapper.setMouseTransparent(true);
+            importScaleSlider.setDisable(true);
+            importRotateSlider.setDisable(true);
+            confirmImportBtn.setDisable(true);
+
+            System.out.println("Successfully transformed and saved import!");
+
+        } catch (IOException e) {
+            System.out.println("Error saving import: " + e.getMessage());
+        }
+    }
+
+    // --- EXISTING METHODS BELOW ---
+
+    @FXML
+    public void toggleDatabasePanel() {
+        boolean isVisible = dbToggle.isSelected();
+        databasePanel.setVisible(isVisible);
+        databasePanel.setManaged(isVisible);
+    }
+
+    @FXML
+    public void toggleGrid() {
+        GraphicsContext gridGc = gridCanvas.getGraphicsContext2D();
+        gridGc.clearRect(0, 0, gridCanvas.getWidth(), gridCanvas.getHeight());
+        if (gridToggle.isSelected()) {
+            gridGc.setStroke(Color.LIGHTGRAY);
+            gridGc.setLineWidth(1);
+            for (int x = 0; x <= 800; x += 50) gridGc.strokeLine(x, 0, x, 600);
+            for (int y = 0; y <= 600; y += 50) gridGc.strokeLine(0, y, 800, y);
         }
     }
 
     @FXML
     public void clearCanvas() {
-        gc.clearRect(0, 0, drawingCanvas.getWidth(), drawingCanvas.getHeight());
-        // Optional: Also clear the tracing image when you clear the canvas
-        tracingImageView.setImage(null);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Clear Canvas Warning");
+        alert.setHeaderText("Are you sure you want to delete your drawing?");
+        alert.setContentText("This cannot be undone.");
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) gc.clearRect(0, 0, drawingCanvas.getWidth(), drawingCanvas.getHeight());
+        });
+    }
+
+    @FXML
+    public void removeTracingImage() { tracingImageView.setImage(null); }
+
+    @FXML
+    public void loadTracingImage() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG Files", "*.png"));
+        File file = fileChooser.showOpenDialog(drawingCanvas.getScene().getWindow());
+        if (file != null) tracingImageView.setImage(new Image(file.toURI().toString()));
     }
 
     @FXML
     public void saveLayer() {
         String layerName = layerNameInput.getText();
         String layerCategory = categoryDropdown.getValue();
-
-        if (layerName == null || layerName.trim().isEmpty() || layerCategory == null) {
-            System.out.println("Warning: Please enter a name and select a category before saving!");
-            return;
-        }
+        if (layerName == null || layerName.trim().isEmpty() || layerCategory == null) return;
 
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Save NFT Layer");
         fileChooser.setInitialFileName(layerName.replaceAll("\\s+", "_") + ".png");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG Files", "*.png"));
 
-        // --- NEW: AUTOMATIC FILE CHOOSER DIRECTORY ---
-        String userHome = System.getProperty("user.home");
-        File defaultLayerDir = new File(userHome + File.separator + "Pictures" + File.separator + "NFT_Studio_Layers");
-
-        // If the folder doesn't exist yet, create it quietly in the background
-        if (!defaultLayerDir.exists()) {
-            defaultLayerDir.mkdirs();
-        }
-
-        // Tell the popup window to start inside this specific folder
+        File defaultLayerDir = new File(System.getProperty("user.home") + File.separator + "Pictures" + File.separator + "NFT_Studio_Layers");
+        if (!defaultLayerDir.exists()) defaultLayerDir.mkdirs();
         fileChooser.setInitialDirectory(defaultLayerDir);
-        // ---------------------------------------------
 
         File file = fileChooser.showSaveDialog(drawingCanvas.getScene().getWindow());
-
         if (file != null) {
             try {
                 WritableImage writableImage = new WritableImage((int) drawingCanvas.getWidth(), (int) drawingCanvas.getHeight());
-
-                // --- NEW TRANSPARENCY FIX ---
                 javafx.scene.SnapshotParameters params = new javafx.scene.SnapshotParameters();
-                params.setFill(javafx.scene.paint.Color.TRANSPARENT); // Force clear background!
-
-                // Pass the params into the snapshot
+                params.setFill(Color.TRANSPARENT);
                 drawingCanvas.snapshot(params, writableImage);
-                // ----------------------------
-
                 ImageIO.write(SwingFXUtils.fromFXImage(writableImage, null), "png", file);
-
                 DatabaseManager.insertLayer(layerName, layerCategory, file.getAbsolutePath());
                 layerNameInput.clear();
-
                 refreshLayerList();
-
-            } catch (IOException ex) {
-                System.out.println("Error saving the image: " + ex.getMessage());
-            }
+            } catch (IOException ex) {}
         }
     }
 
@@ -161,29 +271,19 @@ public class HelloController {
     public void runGenerator() {
         String outputPath = outputPathInput.getText();
         File directory = new File(outputPath);
-
-        if (!directory.exists()) {
-            directory.mkdirs();
-            System.out.println("Created new output directory at: " + outputPath);
-        }
-
+        if (!directory.exists()) directory.mkdirs();
         try {
             int amount = Integer.parseInt(amountInput.getText());
-            java.util.Map<String, java.util.List<String>> allLayers = DatabaseManager.getLayersByCategory();
-            com.nftstudio.nftstudio.engine.GeneratorEngine.generateCollection(allLayers, amount, outputPath);
-            System.out.println("\nSUCCESS! Check your folder: " + outputPath);
-        } catch (NumberFormatException e) {
-            System.out.println("Error: Please enter a valid number for the amount!");
-        }
+            com.nftstudio.nftstudio.engine.GeneratorEngine.generateCollection(DatabaseManager.getLayersByCategory(), amount, outputPath);
+            System.out.println("SUCCESS!");
+        } catch (NumberFormatException e) {}
     }
 
     public void refreshLayerList() {
         layerListView.getItems().clear();
         java.util.Map<String, java.util.List<String>> allLayers = DatabaseManager.getLayersByCategory();
         for (String category : allLayers.keySet()) {
-            for (String path : allLayers.get(category)) {
-                layerListView.getItems().add(path);
-            }
+            for (String path : allLayers.get(category)) layerListView.getItems().add(path);
         }
     }
 
@@ -193,8 +293,6 @@ public class HelloController {
         if (selectedPath != null) {
             DatabaseManager.deleteLayer(selectedPath);
             refreshLayerList();
-        } else {
-            System.out.println("Please select a layer from the list first!");
         }
     }
 
@@ -202,71 +300,5 @@ public class HelloController {
     public void resetEntireDatabase() {
         DatabaseManager.resetDatabase();
         refreshLayerList();
-    }
-
-    @FXML
-    public void importExternalLayer() {
-        String layerName = layerNameInput.getText();
-        String layerCategory = categoryDropdown.getValue();
-
-        if (layerName == null || layerName.trim().isEmpty() || layerCategory == null) {
-            System.out.println("Warning: Please enter a Name and select a Category before importing!");
-            return;
-        }
-
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select PNG to Import");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG Files", "*.png"));
-
-        File sourceFile = fileChooser.showOpenDialog(drawingCanvas.getScene().getWindow());
-
-        if (sourceFile != null) {
-            try {
-                String userHome = System.getProperty("user.home");
-                File destDir = new File(userHome + File.separator + "Pictures" + File.separator + "NFT_Studio_Layers");
-                if (!destDir.exists()) {
-                    destDir.mkdirs();
-                }
-
-                String safeFileName = layerName.replaceAll("\\s+", "_") + ".png";
-                File destFile = new File(destDir, safeFileName);
-
-                // --- NEW SMART RESIZING LOGIC ---
-                // 1. Read the raw image they imported
-                BufferedImage originalImage = ImageIO.read(sourceFile);
-
-                if (originalImage != null) {
-                    // 2. Create a new invisible 800x600 canvas (matching your engine's strict rules)
-                    BufferedImage standardizedImage = new BufferedImage(800, 600, BufferedImage.TYPE_INT_ARGB);
-                    Graphics2D g2d = standardizedImage.createGraphics();
-
-                    // 3. Calculate how to scale the image so it fits 800x600 perfectly without squishing
-                    double scale = Math.min(800.0 / originalImage.getWidth(), 600.0 / originalImage.getHeight());
-                    int newWidth = (int) (originalImage.getWidth() * scale);
-                    int newHeight = (int) (originalImage.getHeight() * scale);
-
-                    // 4. Calculate the exact math to place it dead-center
-                    int x = (800 - newWidth) / 2;
-                    int y = (600 - newHeight) / 2;
-
-                    // 5. Paint the resized image onto the invisible canvas
-                    g2d.drawImage(originalImage, x, y, newWidth, newHeight, null);
-                    g2d.dispose();
-
-                    // 6. Save this new perfect 800x600 version instead of the raw file
-                    ImageIO.write(standardizedImage, "png", destFile);
-                }
-                // --------------------------------
-
-                DatabaseManager.insertLayer(layerName, layerCategory, destFile.getAbsolutePath());
-                layerNameInput.clear();
-                refreshLayerList();
-
-                System.out.println("Successfully imported, resized, and centered: " + destFile.getName());
-
-            } catch (IOException e) {
-                System.out.println("Error importing file: " + e.getMessage());
-            }
-        }
     }
 }
