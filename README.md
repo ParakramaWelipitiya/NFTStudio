@@ -31,7 +31,7 @@ A professional-grade, locally hosted desktop application built with JavaFX and S
 ### Installation & Running
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/](https://github.com/)[YourUsername]/NFT-Studio.git
+   git clone https://github.com/ParakramaWelipitiya/NFTStudio.git
     ```
 2. Navigate to the project directory:
     ```bash
