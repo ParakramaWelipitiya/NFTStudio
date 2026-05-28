@@ -13,15 +13,12 @@ import java.util.Map;
 
 public class DatabaseManager {
 
-    // This tells SQLite to create a file named 'nft_studio.db' right next to your app
     private static final String DB_URL = "jdbc:sqlite:nft_studio.db";
 
     public static void initializeDatabase() {
-        // The try-with-resources block automatically opens and closes the connection
         try (Connection conn = DriverManager.getConnection(DB_URL);
              Statement stmt = conn.createStatement()) {
 
-            // SQL command to create a table for our layers if it doesn't exist yet
             String createLayersTable = """
                 CREATE TABLE IF NOT EXISTS layers (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,7 +54,6 @@ public class DatabaseManager {
     }
 
     public static Map<String, List<String>> getLayersByCategory() {
-        // This is the main "bucket" that will hold our categorized lists
         Map<String, List<String>> categorizedLayers = new HashMap<>();
 
         String query = "SELECT category, file_path FROM layers";
@@ -66,15 +62,12 @@ public class DatabaseManager {
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
 
-            // Loop through every single row saved in our SQLite database
             while (rs.next()) {
                 String category = rs.getString("category");
                 String filePath = rs.getString("file_path");
 
-                // If this category doesn't exist in our Map yet, create a new empty list for it
                 categorizedLayers.putIfAbsent(category, new ArrayList<>());
 
-                // Add the file path to that specific category's list
                 categorizedLayers.get(category).add(filePath);
             }
 
@@ -100,7 +93,6 @@ public class DatabaseManager {
         }
     }
 
-    // 2. Reset the entire database
     public static void resetDatabase() {
         String resetSQL = "DELETE FROM layers";
 

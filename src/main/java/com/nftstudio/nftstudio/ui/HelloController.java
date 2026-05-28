@@ -23,8 +23,6 @@ public class HelloController {
     @FXML private Canvas drawingCanvas;
     @FXML private Canvas gridCanvas;
     @FXML private ImageView tracingImageView;
-
-    // Transform Overlay Variables
     @FXML private Pane importWrapper;
     @FXML private ImageView importOverlay;
     @FXML private Slider importScaleSlider;
@@ -82,7 +80,6 @@ public class HelloController {
             }
         });
 
-        // Dynamic Category Loading
         java.util.Map<String, java.util.List<String>> existingData = DatabaseManager.getLayersByCategory();
         if (existingData.isEmpty()) {
             categoryDropdown.getItems().addAll("1_Background", "2_Base_Body", "3_Clothes", "4_Headwear", "5_Accessories");
@@ -266,7 +263,6 @@ public class HelloController {
         }
     }
 
-    // --- UPDATED: GENERATOR POPUP ---
     @FXML
     public void runGenerator() {
         String outputPath = outputPathInput.getText();
@@ -277,13 +273,11 @@ public class HelloController {
             int amount = Integer.parseInt(amountInput.getText());
             com.nftstudio.nftstudio.engine.GeneratorEngine.generateCollection(DatabaseManager.getLayersByCategory(), amount, outputPath);
 
-            // Success Popup!
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Success");
             alert.setHeaderText("Generation Complete!");
             alert.setContentText("Successfully generated " + amount + " NFTs to your output folder.");
 
-            // Push the popup to the top of the window
             Window window = drawingCanvas.getScene().getWindow();
             alert.setY(window.getY() + 40);
 
@@ -306,7 +300,6 @@ public class HelloController {
         }
     }
 
-    // --- UPDATED: DELETE CONFIRMATION ---
     @FXML
     public void deleteSelectedLayer() {
         String selectedPath = layerListView.getSelectionModel().getSelectedItem();
@@ -326,7 +319,6 @@ public class HelloController {
         }
     }
 
-    // --- UPDATED: RESET CONFIRMATION ---
     @FXML
     public void resetEntireDatabase() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -342,7 +334,6 @@ public class HelloController {
         });
     }
 
-    // --- NEW: POPUP STYLER HELPER ---
     private void applyDarkThemeToPopup(Alert alert) {
         DialogPane dialogPane = alert.getDialogPane();
         try {
