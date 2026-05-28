@@ -2,7 +2,8 @@
 
 A professional-grade, locally hosted desktop application built with JavaFX and SQLite. NFT Studio allows digital artists and developers to easily layer, transform, and generate massive Web3-ready generative art collections (with accompanying JSON metadata) entirely offline.
 
-![img.png](img.png)
+<img width="1919" height="1019" alt="Screenshot 2026-05-28 044800" src="https://github.com/user-attachments/assets/1adadd16-4efc-4774-a535-c778fb9d4045" />
+
 
 ## Key Features
 
