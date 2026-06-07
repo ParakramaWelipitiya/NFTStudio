@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFT Studio | Generative Art Engine</title>
+    <style>
+        :root {
+            --bg-base: #05050A;
+            --neon-cyan: #00f3ff;
+            --neon-pink: #fe019a;
+            --neon-purple: #9d00ff;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-muted: #8b8b9f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+            background-image: 
+                linear-gradient(rgba(157, 0, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(157, 0, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: center center;
+        }
+
+        .ambient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.4;
+            animation: float 10s infinite ease-in-out alternate;
+        }
+        .orb-1 { top: 10%; left: 10%; width: 300px; height: 300px; background: var(--neon-purple); }
+        .orb-2 { bottom: 20%; right: 10%; width: 400px; height: 400px; background: var(--neon-cyan); animation-delay: -5s; }
+        .orb-3 { top: 40%; left: 50%; width: 250px; height: 250px; background: var(--neon-pink); animation-delay: -2s; }
+
+        @keyframes float {
+            0% { transform: translateY(0px) scale(1); }
+            100% { transform: translateY(30px) scale(1.1); }
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 10%;
+            background: rgba(5, 5, 10, 0.7);
+            backdrop-filter: blur(12px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            display: inline-block;
+        }
+
+        .btn-glow {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+        }
+
+        .btn-glow:hover {
+            background: rgba(0, 243, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4), inset 0 0 10px rgba(0, 243, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 100px 10% 0;
+            position: relative;
+            gap: 50px;
+        }
+
+        .hero-text {
+            flex: 1;
+        }
+
+        .hero-badge {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(4px);
+            color: var(--neon-cyan);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 5vw, 5.5rem);
+            line-height: 1.1;
+            margin-bottom: 20px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .hero h1 span {
+            background: linear-gradient(90deg, var(--neon-purple), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 500px;
+            margin-bottom: 40px;
+        }
+
+        .hero-visual {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        .nft-card {
+            width: 320px;
+            height: 420px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            padding: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(157, 0, 255, 0.3);
+            transform-style: preserve-3d;
+            animation: cardFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes cardFloat {
+            0% { transform: rotateY(-10deg) rotateX(5deg) translateY(0); }
+            50% { transform: rotateY(10deg) rotateX(-5deg) translateY(-20px); }
+            100% { transform: rotateY(-10deg) rotateX(5deg) translateY(0); }
+        }
+
+        .nft-art {
+            width: 100%;
+            height: 280px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nft-art::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px);
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .nft-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nft-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .nft-info h3 { font-size: 1.2rem; margin-bottom: 5px; }
+        .nft-info p { font-size: 0.9rem; color: var(--neon-cyan); margin: 0; font-family: monospace;}
+        
+        .eth-price {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .architecture {
+            padding: 100px 10%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .timeline-container {
+            display: flex;
+            gap: 40px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .timeline-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 300px;
+        }
+
+        .timeline-btn {
+            background: var(--glass-bg);
+            color: var(--text-muted);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: left;
+            transition: all 0.3s;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            font-size: 1.1rem;
+        }
+
+        .timeline-btn:hover { background: rgba(255,255,255,0.08); }
+
+        .timeline-btn.active {
+            background: rgba(157, 0, 255, 0.15);
+            border-color: var(--neon-purple);
+            color: #fff;
+            transform: translateX(10px);
+            box-shadow: inset 4px 0 0 var(--neon-cyan);
+        }
+
+        .timeline-content {
+            flex-grow: 1;
+            background: var(--glass-bg);
+            padding: 50px;
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(20px);
+            display: none;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .timeline-content.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tech-tags {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .tech-tag {
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            color: var(--neon-cyan);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-family: monospace;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--glass-border);
+            backdrop-filter: blur(5px);
+        }
+
+        @media (max-width: 900px) {
+            .hero { flex-direction: column; text-align: center; padding-top: 150px; }
+            .hero-visual { margin-top: 50px; }
+            .timeline-container { flex-direction: column; }
+            .timeline-btn.active { transform: translateX(0) scale(1.02); box-shadow: inset 0 4px 0 var(--neon-cyan); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+
+    <nav>
+        <div class="logo">NFT Studio</div>
+        <a href="https://github.com/ParakramaWelipitiya/NFTStudio.git" class="btn btn-glow" target="_blank">View Repo</a>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-text">
+            <div class="hero-badge">Java Web3 Infrastructure</div>
+            <h1>Generative Art & <br><span>Metadata Engine</span></h1>
+            <p>Bypass cloud dependency. Import layers, apply 2D matrix transformations, and compile blockchain-ready JSON collections entirely on your local machine.</p>
+            <div style="margin-top: 30px;">
+                <a href="#architecture" class="btn btn-glow" style="margin-right: 15px;">Explore Architecture</a>
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <div class="nft-card">
+                <div class="nft-art"><img src="my-nft.png" alt="Generated NFT Art" class="nft-image"></div>
+                <div class="nft-info">
+                    <div>
+                        <h3>Generative #001</h3>
+                        <p>metadata.json mapped</p>
+                    </div>
+                    <div class="eth-price">
+                        💎 0.05 ETH
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="architecture" class="architecture">
+        <h2 class="section-title">System Pipeline</h2>
+        
+        <div class="timeline-container">
+            <div class="timeline-nav">
+                <button class="timeline-btn btn active" onclick="switchTab(0)">01. Smart Transform Importer</button>
+                <button class="timeline-btn btn" onclick="switchTab(1)">02. SQLite Persistence</button>
+                <button class="timeline-btn btn" onclick="switchTab(2)">03. Graphics Compositing</button>
+                <button class="timeline-btn btn" onclick="switchTab(3)">04. JSON Web3 Compiler</button>
+            </div>
+
+            <div class="timeline-content active" id="content-0">
+                <h2 style="margin-bottom: 15px; color: #fff;">Input & Transformation</h2>
+                <p style="color: var(--text-muted); font-size: 1.1rem;">Raw PNG assets are imported into the JavaFX UI. A custom 2D affine transformation engine allows real-time spatial manipulation (drag, scale, rotate) directly on the canvas before committing the state.</p>
+                <div class="tech-tags">
+                    <span class="tech-tag">JavaFX</span>
+                    <span class="tech-tag">Event Listeners</span>
+                </div>
+            </div>
+
+            <div class="timeline-content" id="content-1">
+                <h2 style="margin-bottom: 15px; color: #fff;">Database Management</h2>
+                <p style="color: var(--text-muted); font-size: 1.1rem;">Transformed asset coordinates and categorized layer metadata are securely committed to a local database. This enables high-speed, dynamic CRUD operations for thousands of localized assets without relying on temporary memory lists.</p>
+                <div class="tech-tags">
+                    <span class="tech-tag">SQLite</span>
+                    <span class="tech-tag">JDBC</span>
+                </div>
+            </div>
+
+            <div class="timeline-content" id="content-2">
+                <h2 style="margin-bottom: 15px; color: #fff;">The Graphics Engine</h2>
+                <p style="color: var(--text-muted); font-size: 1.1rem;">The core generation loop queries the database, selecting random traits based on configured parameters. It utilizes advanced Java image processing to perfectly stack transparent pixels into a single, flattened output asset.</p>
+                <div class="tech-tags">
+                    <span class="tech-tag">java.awt.Graphics2D</span>
+                    <span class="tech-tag">javax.imageio.ImageIO</span>
+                </div>
+            </div>
+
+            <div class="timeline-content" id="content-3">
+                <h2 style="margin-bottom: 15px; color: #fff;">Web3 Integration</h2>
+                <p style="color: var(--text-muted); font-size: 1.1rem;">Operating synchronously alongside the image compiler, the system automatically formats and generates blockchain-standard .json files, ensuring absolute parity between the visual traits and the IPFS-ready metadata.</p>
+                <div class="tech-tags">
+                    <span class="tech-tag">File I/O</span>
+                    <span class="tech-tag">ERC-721 Standard</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; <script>document.write(new Date().getFullYear());</script>NFT Studio. Open Source Project.</p>
+    </footer>
+
+    <script>
+        function switchTab(index) {
+            document.querySelectorAll('.timeline-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.timeline-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelectorAll('.timeline-btn')[index].classList.add('active');
+            document.getElementById(`content-${index}`).classList.add('active');
+        }
+    </script>
+</body>
+</html>
